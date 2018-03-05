@@ -20,10 +20,13 @@ var MongoClient = require('mongodb').MongoClient;
 var testDataImporter = require('./test_data_importer');
 var log = require('./logger');
 
-var mongodbUrl = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/homogen';
+// var mongodbUrl = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/homogen';
+var mongodbUrl = process.env.MONGOLAB_URI || 'mongodb://timesheet:timetime@ds253468.mlab.com:53468/mi-timesheet';
 var mongoDbSessionStorageUrl = process.env.MONGOLAB_URI
                                  || process.env.MONGO_SESSION_STORAGE_URL
-                                 || 'mongodb://localhost:27017/homogen-sessions';
+                                 || 'mongodb://timesheet:timetime@ds253468.mlab.com:53468/mi-timesheet-sessions';
+                                //  || 'mongodb://timesheet:timetime@ds253468.mlab.com:53468/mi-timesheet/homogen-sessions';
+                                // || 'mongodb://localhost:27017/homogen-sessions';
 
 var timelogCollectionName = 'timelogs';
 var projectCollectionName = 'projects';

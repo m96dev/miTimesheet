@@ -16,103 +16,109 @@
  * @author Andrew Voitov
  */
 
-var express = require('express');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var MongoStore = require('connect-mongo')(session);
-var expressValidator = require('express-validator');
-var compression = require('compression');
+var express = require('express')
+var bodyParser = require('body-parser')
+var cookieParser = require('cookie-parser')
+var session = require('express-session')
+var MongoStore = require('connect-mongo')(session)
+var expressValidator = require('express-validator')
+var compression = require('compression')
 
-var router = require('./backend/router');
-var authentication = require('./backend/libs/authentication');
-var util = require('./backend/libs/utils');
-var validators = require('./backend/libs/validators');
-var log = require('./backend/libs/logger');
-var errorHandler = require('./backend/libs/error_handler');
-var db = require('./backend/libs/mongodb_settings');
+var router = require('./backend/router')
+var authentication = require('./backend/libs/authentication')
+var util = require('./backend/libs/utils')
+var validators = require('./backend/libs/validators')
+var log = require('./backend/libs/logger')
+var errorHandler = require('./backend/libs/error_handler')
+var db = require('./backend/libs/mongodb_settings')
 
-var app = express();
-app.set('port', process.env.PORT || 1313);
-app.set('json replacer', util.jsonStringify);
+var app = express()
+app.set('port', process.env.PORT || 1313)
+app.set('json replacer', util.jsonStringify)
 
 if (app.get('env') === 'production') {
-    log.info('Production Mode!!!');
+  log.info('Production Mode!!!')
 } else {
-    log.info('Development Mode!!!');
+  log.info('Development Mode!!!')
+  log.info('http://localhost:1313')
 }
 
-app.use(cookieParser());
-app.use(compression());
-app.use(express.static('frontend'));
-app.use(bodyParser.json({reviver:util.jsonParse}));
-log.info('Static resources are initialized!');
+app.use(cookieParser())
+app.use(compression())
+app.use(express.static('frontend'))
+app.use(bodyParser.json({reviver: util.jsonParse}))
+log.info('Static resources are initialized!')
 
-app.use(expressValidator(validators.config));
+app.use(expressValidator(validators.config))
 
 app.use(expressValidator({
-    customValidators: {
-        containsAny: function(val, array) {
-            var valid = false;
-            for(var i = 0, l = array.length; i < l; i++) {
-                if (val.includes(array[i])) {
-                    valid = true;
-                }
-            }
-            return valid;
+  customValidators: {
+    containsAny: function (val, array) {
+      var valid = false
+      for (var i = 0, l = array.length; i < l; i++) {
+        if (val.includes(array[i])) {
+          valid = true
         }
+      }
+      return valid
     }
-}));
+  }
+}))
 
 app.use(session(
-    { secret: 'homogen cat' ,
+  { secret: 'homogen cat',
     name: 'kaas',
-    cookie: { maxAge : 3600000 * 24 * 8 },
+    cookie: { maxAge: 3600000 * 24 * 8 },
     resave: false,
     rolling: true,
     saveUninitialized: true,
     store: new MongoStore({url: db.sessionMongoUrl})})
-);
-//Set test user to request
-if(process.env.APPLICATION_TEST) {
-    log.info('E2e test mode');
-    var users = require('./backend/user');
-    app.use('/', function(req, res, next) {
-        users.findByEmail('test@test.com', function(err, user) {
-            req.user = user;
-            next();
-        })
-    });
+)
+// Set test user to request
+
+process.env.APPLICATION_TEST = true
+if (process.env.APPLICATION_TEST) {
+  log.info('E2e test mode')
+  var users = require('./backend/user')
+  app.use('/', function (req, res, next) {
+    users.findByEmail('test@test.com', function (err, user) {
+      if (err) {
+        console.log(err.stack)
+      }
+      req.user = user
+      next()
+    })
+  })
 }
-//last step: init auth
-authentication.init(app);
+// last step: init auth
+authentication.init(app)
 
-//add auth.ensureAuthenticated for each Rest API
-app.use('/api', function(req, res, next){
-    authentication.ensureAuthenticated(req, res, next);
-});
+// add auth.ensureAuthenticated for each Rest API
+app.use('/api', function (req, res, next) {
+  authentication.ensureAuthenticated(req, res, next)
+})
 
-//routing
-app.use('/api/v1', router.versionRouter);
+// routing
+app.use('/api/v1', router.versionRouter)
 
-//Angular html5Mode support. Shoud be the last HTTP call
-app.get('/*', function(req, res, next) {
-    res.sendFile('frontend/index.html', { root: __dirname });
-});
+// Angular html5Mode support. Shoud be the last HTTP call
+app.get('/*', function (req, res, next) {
+  res.sendFile('frontend/index.html', { root: __dirname })
+})
 
-log.info('REST API is ready!');
+log.info('REST API is ready!')
 
 // default error handler
-app.use(errorHandler);
-log.info('Error handler is initialized!');
+app.use(errorHandler)
+log.info('Error handler is initialized!')
 
-//email send example
-//var mail = require('./backend/libs/mail');
-//mail.sendInvite('andreivoitau@gmail.com', 'blablabla');
+// email send example
+// var mail = require('./backend/libs/mail');
+// mail.sendInvite('andreivoitau@gmail.com', 'blablabla');
 
-//run application
-var server = app.listen(app.get('port'), function() {
-    log.info('MiTimesheet server is started on port: %d', app.get('port'));
-});
+// run application
+var server = app.listen(app.get('port'), function () {
+  log.info('MiTimesheet server is started on port: %d', app.get('port'))
+})
 
-module.exports = server;
+module.exports = server
