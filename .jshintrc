@@ -8,6 +8,8 @@
     "beforeEach": false,
     "afterEach": false,
     "module": false,
+    "jquery": false,
+    "$": false,
     "inject": false
   }
 }

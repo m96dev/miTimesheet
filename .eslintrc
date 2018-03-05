@@ -1,0 +1,14 @@
+{
+  "globals": {
+    "$":false,
+    "jQuery" : false,
+    "fetch" : false
+  },
+  "extends": [
+    "standard"
+  ],
+  "rules": {
+    "no-multi-spaces": 0,
+    "yoda": 0
+  }
+}
